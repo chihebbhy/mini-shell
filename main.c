@@ -6,7 +6,7 @@
 #include <string.h> // (strtok)
 #include <stdbool.h> // booleen
 #define MAX_INPUT_LENGTH 1000
-#define MAX_ARGUMENTS_NUMBER 100
+
 char** parseArgument(char* ch){
 
 	ch[strlen(ch)-1] = 0;
@@ -15,16 +15,26 @@ char** parseArgument(char* ch){
 		return NULL;
 	}
 	char *token;
-	char **list = malloc(MAX_ARGUMENTS_NUMBER * sizeof(char*));
-	// CHANGE TO REALLOC AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	int local_max_arguments = 10;
+	char **list = malloc(local_max_arguments * sizeof(char*));
 	if( list == NULL ){
-		printf("malloc failed");
+		printf("malloc failed\n");
 		return NULL;
 	}
 	int i = 0 ;
 	token = strtok(ch," ");
-	while(token != NULL && i < MAX_ARGUMENTS_NUMBER -1){
+	while(token != NULL ){
 		list[i++] = token;
+		if(i >= local_max_arguments - 1){
+			local_max_arguments += 5; // increment memory size by 5 * sizeof(char*) = 40 bytes
+			char **temp  = realloc(list,local_max_arguments * sizeof(char*));
+			if( temp == NULL ){
+				printf("Ran out of memory for arguments\n");
+				free(list);
+				return NULL;
+			}
+			list = temp;
+		}
 		token = strtok(NULL," ");
 	}
 	list[i] = NULL;
@@ -93,8 +103,12 @@ int isInternal(char* arg){
 int main(){
 	char ch[MAX_INPUT_LENGTH];
 	char **args;
+	char *pwd;
 	while(1){
-		printf("fstShell> ");
+		if( !(pwd = getcwd(NULL,0)) )
+			printf("Can't find current pwd (getcwd() error)\n");
+
+		printf("fstShell:~%s> ",pwd);
 		if( fgets(ch,sizeof(ch),stdin) == NULL ){
 			printf("\nExiing fstShell...\n");
 			break;
