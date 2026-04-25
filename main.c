@@ -9,8 +9,10 @@
 
 char** parseArgument(char* ch){
 
-	ch[strlen(ch)-1] = 0;
-
+    int len = strlen(ch);
+    if (len > 0 && ch[len - 1] == '\n') {
+        ch[len - 1] = '\0';
+    }
 	if(strcmp(ch,"")==0){
 		return NULL;
 	}
@@ -38,11 +40,6 @@ char** parseArgument(char* ch){
 		token = strtok(NULL," ");
 	}
 	list[i] = NULL;
-	if( token != NULL ){ // MAX ARGUMENTS reached
-		printf("Too many arguments\n");
-		free(list);
-		return NULL;
-	}
 	return list;
 }
 
@@ -68,7 +65,7 @@ int internalCommand(char** args){
 		}
 	}else if( strcmp(args[0],"help") == 0 ){
 		printf("fstShell, version 1.0 (x86_64-pc-linux-fstShell)\n");
-		printf("These shell commands are defined internally. Type '= 'help' to see this list\n");
+		printf("These shell commands are defined internally. Type 'help' to see this list\n");
 		printf("help\t\t\t");
 		printf("exit\n");
 		printf("cd [DEST]\t\t\t");
@@ -105,12 +102,14 @@ int main(){
 	char **args;
 	char *pwd;
 	while(1){
-		if( !(pwd = getcwd(NULL,0)) )
+		pwd = getcwd(NULL, 0);
+		if (!pwd)
 			printf("Can't find current pwd (getcwd() error)\n");
 
-		printf("fstShell:~%s> ",pwd);
+		free(pwd);
+		printf("fstShell:~%s> ",pwd ? pwd : "");
 		if( fgets(ch,sizeof(ch),stdin) == NULL ){
-			printf("\nExiing fstShell...\n");
+			printf("\nExiting fstShell...\n");
 			break;
 		}
 		args = parseArgument(ch);
